@@ -25,7 +25,6 @@ describe("deterministicPartitionKey", () => {
     const hashedCandidateToMatch = crypto.createHash("sha3-512")
         .update(JSON.stringify(literal))
         .digest("hex");
-    console.log(typeof hashedCandidateToMatch)
     expect(trivialKey).toBe(hashedCandidateToMatch);
   });
 });
