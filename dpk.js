@@ -1,28 +1,40 @@
 const crypto = require("crypto");
 
+/**
+ * Function to compute the deterministic partition key
+ * Returns the literal '0' if no argument is provided when calling function.
+ * Returns literal passed in object key 'partitionKey' if character length is not above 256
+ * Returns Crypto Hashed value of argument if the two cases above are false.
+ * @param event
+ * @returns {string}
+ */
 exports.deterministicPartitionKey = (event) => {
-  const TRIVIAL_PARTITION_KEY = "0";
+  //declaring and initializing constant variable MAX_PARTITION_KEY_LENGTH
   const MAX_PARTITION_KEY_LENGTH = 256;
-  let candidate;
 
+  //declaring variable to hold the return value and defaulting it to the literal '0'
+  let candidate = '0';
+
+  //Checking if function was called with an argument and process the following logic if true
   if (event) {
     if (event.partitionKey) {
-      candidate = event.partitionKey;
+      candidate = JSON.stringify(event.partitionKey);
     } else {
-      const data = JSON.stringify(event);
-      candidate = crypto.createHash("sha3-512").update(data).digest("hex");
+      candidate = crypto.createHash("sha3-512")
+          .update(JSON.stringify(event))
+          .digest("hex");
     }
   }
 
-  if (candidate) {
-    if (typeof candidate !== "string") {
-      candidate = JSON.stringify(candidate);
-    }
-  } else {
-    candidate = TRIVIAL_PARTITION_KEY;
-  }
+  /*
+  * checking if computed return value character length is greater than the value of the max partition key constant
+  * If true, go ahead and compute the crypto hash of the value
+   */
   if (candidate.length > MAX_PARTITION_KEY_LENGTH) {
-    candidate = crypto.createHash("sha3-512").update(candidate).digest("hex");
+    candidate = crypto.createHash("sha3-512")
+        .update(candidate)
+        .digest("hex");
   }
+
   return candidate;
 };
